@@ -6,7 +6,7 @@ $srcPath = Join-Path $slnPath "src"
 # List of projects
 $projects = (
     "SutBuilder",
-    "SutBuilder.NSubstitute",
+    "SutBuilder.NSubstitute"
 )
 
 # Rebuild solution
