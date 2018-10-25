@@ -24,7 +24,9 @@ install:
     update-appveyorbuild -Version "$env:versionPrefix$env:package_suffix"
 
 before_build:
-- cmd: dotnet restore -v Minimal
+- ps: >-
+    cd src
+    dotnet restore -v Minimal
 
 build_script:
   - ps: dotnet build -c Release
