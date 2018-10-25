@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <Import Project="..\..\build\common.props" />
+
+    <PropertyGroup>
+        <TargetFrameworks>netstandard2.0</TargetFrameworks>
+        <Description>System Under Test creation helper for NSubstitute</Description>
+        <AssemblyName>SutBuilder.NSubstitute</AssemblyName>
+        <PackageId>SutBuilder.NSubstitute</PackageId>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\SutBuilder\SutBuilder.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="NSubstitute" Version="3.1.0" />
+    </ItemGroup>
+</Project>

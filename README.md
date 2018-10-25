@@ -1,2 +1,2 @@
-# Toxu4.SutBuilder
+# SutBuilder
 System Under Test creation helper

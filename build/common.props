@@ -1,0 +1,14 @@
+<Project>
+  <Import Project="..\version.props" />
+  <PropertyGroup>
+    <PackageProjectUrl>https://github.com/Toxu4/SutBuilder</PackageProjectUrl>
+    <PackageLicenseUrl>https://github.com/Toxu4/SutBuilder/blob/master/LICENSE</PackageLicenseUrl>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/Toxu4/SutBuilder</RepositoryUrl>
+    <Authors>Anton Krasilshchikov, Rambler Digital Solutions</Authors>    
+    <Product>SutBuilder</Product>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <RepositoryType>git</RepositoryType>
+    <NoWarn>1701;1702;1705;1591</NoWarn>
+  </PropertyGroup>
+</Project>
