@@ -40,7 +40,7 @@ after_test:
 - ps: >-    
     md -Name nupkg
 
-    .\build\pack.ps1
+    ..\build\pack.ps1
 
 skip_branch_with_pr: true
 skip_tags: true
