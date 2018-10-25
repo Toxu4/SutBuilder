@@ -1,3 +1,12 @@
+# SutBuilder [![Build status](https://ci.appveyor.com/api/projects/status/356qx7r7odkobkr9?svg=true)](https://ci.appveyor.com/project/Toxu4/sutbuilder)
+
+
+&nbsp; | `NuGet Package`
+--- | ---
+**SutBuilder** | [![NuGet Version](https://buildstats.info/nuget/SutBuilder)](https://www.nuget.org/packages/SutBuilder) 
+**SutBuilder.NSubstitute** | [![NuGet Version](https://buildstats.info/nuget/SutBuilder.NSubstitute)](https://www.nuget.org/packages/SutBuilder.NSubstitute) 
+
+
 # SutBuilder
 System Under Test creation helper
 
