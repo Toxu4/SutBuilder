@@ -26,6 +26,7 @@ install:
 before_build:
 - ps: >-
     cd src
+    
     dotnet restore -v Minimal
 
 build_script:
