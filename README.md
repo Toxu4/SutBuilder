@@ -1,4 +1,4 @@
-# SutBuilder [![Build status](https://ci.appveyor.com/api/projects/status/356qx7r7odkobkr9?svg=true)](https://ci.appveyor.com/project/Toxu4/sutbuilder)
+# SutBuilder [![Build status](https://ci.appveyor.com/api/projects/status/356qx7r7odkobkr9?svg=true)](https://ci.appveyor.com/project/Toxu4/sutbuilder) [![license](https://img.shields.io/github/license/mashape/apistatus.svg)]
 
 
 &nbsp; | `NuGet Package`
