@@ -3,8 +3,8 @@
 
 &nbsp; | `NuGet Package`
 --- | ---
-**SutBuilder** | [![NuGet Version](https://buildstats.info/nuget/SutBuilder)](https://www.nuget.org/packages/SutBuilder) 
-**SutBuilder.NSubstitute** | [![NuGet Version](https://buildstats.info/nuget/SutBuilder.NSubstitute)](https://www.nuget.org/packages/SutBuilder.NSubstitute) 
+**SutBuilder** | [![nuget](https://img.shields.io/nuget/v/SutBuilder.svg)](https://www.nuget.org/packages/SutBuilder/)
+**SutBuilder.NSubstitute** | [![nuget](https://img.shields.io/nuget/v/SutBuilder.NSubstitute.svg)](https://www.nuget.org/packages/SutBuilder.NSubstitute/)
 
 
 # SutBuilder
