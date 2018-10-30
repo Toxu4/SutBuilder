@@ -8,12 +8,19 @@ namespace SutBuilder
 {
     public abstract class AbstractSutBuilder<T>  where T : class
     {
+        private readonly Dictionary<Type, object> _initialStubs;
         private Dictionary<Type, object> _stubs;
         
         protected abstract TStub CreateStub<TStub>() where TStub: class;
 
-        protected AbstractSutBuilder()
+        protected AbstractSutBuilder(params object[] initialStubs)
         {
+            _initialStubs = 
+                initialStubs?
+                    .GroupBy(s => s.GetType())
+                    .ToDictionary(g => g.Key, g => g.First())
+                ?? new Dictionary<Type, object>();
+                
             _stubs = CreateStubs();
         }
 
@@ -73,11 +80,17 @@ namespace SutBuilder
             return typeof(T)
                 .GetConstructors().SelectMany(c => c.GetParameters())
                 .GroupBy(p => p.ParameterType)
+                .Where(g => !_initialStubs.ContainsKey(g.Key))
+                .Select(g => 
+                    new KeyValuePair<Type, object>(
+                        g.Key, 
+                        createStubMethodInfo
+                            .MakeGenericMethod(g.Key)
+                            .Invoke(this, new object[] {})))
+                .Union(_initialStubs)
                 .ToDictionary(
-                    g => g.Key,
-                    g => createStubMethodInfo
-                        .MakeGenericMethod(g.Key)
-                        .Invoke(this, new object[] {}));
+                    kv => kv.Key,
+                    kv => kv.Value);
         }        
     }
 }
