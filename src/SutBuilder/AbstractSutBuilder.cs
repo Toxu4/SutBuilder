@@ -41,6 +41,7 @@ namespace SutBuilder
                     var stubKey = dependencyType
                         .GetInterfaces()
                         .Union(new[] {dependencyType})
+                        .Union(PredecessorsOf(dependencyType))
                         .First(i => _stubs.ContainsKey(i)); 
                     
                     _stubs[stubKey] = dependency;
@@ -48,6 +49,16 @@ namespace SutBuilder
             }
             
             return this;
+        }
+
+        private IEnumerable<Type> PredecessorsOf(Type dependencyType)
+        {
+            while (dependencyType.BaseType != null)
+            {
+                yield return dependencyType.BaseType;
+                
+                dependencyType = dependencyType.BaseType;
+            }
         }
 
         public AbstractSutBuilder<T> Configure<TStub>(Action<TStub> configurationAction) where TStub : class 

@@ -2,7 +2,7 @@
 {
     public class SomethingMaker
     {
-        public void MakeSomething()
+        public virtual void MakeSomething()
         {
             // something
         }

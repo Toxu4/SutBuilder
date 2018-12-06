@@ -8,9 +8,10 @@
         {
             _somethingToBeMade = somethingToBeMade;
         }
-        public int MakeSomething()
+        public virtual int MakeSomething()
         {
             return _somethingToBeMade;
         }
     }
+
 }

@@ -131,5 +131,17 @@ namespace SutBuilder.Tests.Unit
             Assert.That(result, Is.EqualTo("Hello dude!"));
         }
         
+        [Test]
+        public void Should_Be_Able_To_Use_Descendant_Classes()
+        {
+            // given
+            var builder = new SutBuilder();
+
+            // when
+
+            // then
+            Assert.DoesNotThrow(() => builder.Inject(new SomethingElseMaker()));            
+            Assert.DoesNotThrow(() => builder.Inject(Substitute.For<SomethingElseMaker>()));            
+        }
     }
 }
