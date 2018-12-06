@@ -23,7 +23,7 @@ namespace SutBuilder
         
         protected abstract TStub CreateStub<TStub>() where TStub: class;
 
-        protected AbstractSutBuilder(Action<AbstractSutBuilder<T>> defaultConfig)
+        protected AbstractSutBuilder(Action<AbstractSutBuilder<T>> defaultConfig = null)
         {
             _defautConfig = defaultConfig;
             
