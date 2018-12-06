@@ -18,16 +18,24 @@ Imagine that the Formatter class is our System Under Test
          private readonly IFormatProvider _formatProvider;
          private readonly IArgumentsProvider _argumentsProvider;
          private readonly IMyLogger _logger;
+         private readonly SomethingMaker _somethingMaker;
+         private readonly ParametrizedSomethingMaker _parametrizedSomethingMaker;
+         
  
-         public Formatter(IFormatProvider formatProvider, IArgumentsProvider argumentsProvider, IMyLogger logger)
+         public Formatter(IFormatProvider formatProvider, IArgumentsProvider argumentsProvider, IMyLogger logger, SomethingMaker somethingMaker, ParametrizedSomethingMaker parametrizedSomethingMaker)
          {
              _formatProvider = formatProvider;
              _argumentsProvider = argumentsProvider;
              _logger = logger;
+             _somethingMaker = somethingMaker;
+             _parametrizedSomethingMaker = parametrizedSomethingMaker;
          }
  
          public string FormatMessage()
          {
+             _somethingMaker.MakeSomething();
+             _parametrizedSomethingMaker.MakeSomething();
+             
              _logger.Log("formatting ...");
              
              return string.Format(_formatProvider.GetFormat(), _argumentsProvider.GetArguments());
@@ -48,25 +56,60 @@ Imagine that the Formatter class is our System Under Test
     {
         void Log(string s);
     }
+    
+    public class SomethingMaker
+    {
+        public void MakeSomething()
+        {
+            // something
+        }
+    }
+       
+    public class ParametrizedSomethingMaker
+    {
+        private readonly int _somethingToBeMade;
+
+        public ParametrizedSomethingMaker(int somethingToBeMade)
+        {
+            _somethingToBeMade = somethingToBeMade;
+        }
+        public int MakeSomething()
+        {
+            return _somethingToBeMade;
+        }
+    }     
 ```
 
 Test the Formatter class using NSubstituteSutBuilder
 
 ```CSharp
- [TestFixture]
+using NSubstitute;
+using NUnit.Framework;
+using SutBuilder.NSubstitute;
+
+namespace SutBuilder.Tests.Unit
+{
+    [TestFixture]
     public class FormatterTests
     {
         private class SutBuilder : NSubstituteSutBuilder<Formatter>
         {
             public SutBuilder()
+            : base(builder =>
             {
-                Configure<IFormatProvider>(fp => fp.GetFormat().Returns("Hello {0}!"));
-                Configure<IArgumentsProvider>(ap => ap.GetArguments().Returns(new object[] {"world"}));
+                builder.Inject(
+                    new SomethingMaker(),
+                    new ParametrizedSomethingMaker(256));
+                
+                builder.Configure<IFormatProvider>(fp => fp.GetFormat().Returns("Hello {0}!"));
+                builder.Configure<IArgumentsProvider>(ap => ap.GetArguments().Returns(new object[] {"world"}));                
+            })
+            {
             }
         }
 
         [Test]
-        public void ShouldFormat()
+        public void Should_Format_Using_Default_Config()
         {
             // given
             var builder = new SutBuilder();
@@ -82,14 +125,20 @@ Test the Formatter class using NSubstituteSutBuilder
         }
         
         [Test]
-        public void ShouldFormat2()
+        public void Should_Format_Using_Additional_Injections_And_Configuration()
         {
             // given
             var argProvider = Substitute.For<IArgumentsProvider>();
             argProvider.GetArguments().Returns(new object[] {"guys"});
 
-            var builder = new SutBuilder()             
-                .Inject(argProvider)
+            var somethingMaker = new SomethingMaker();
+            var parametrizedSomethingMaker = new ParametrizedSomethingMaker(256);
+            
+            var builder = new SutBuilder()
+                .Inject(
+                    somethingMaker, 
+                    parametrizedSomethingMaker, 
+                    argProvider)
                 .Configure<IFormatProvider>(fp => fp.GetFormat().Returns("Goodbye {0}!"));
 
             var logger = builder.Get<IMyLogger>();
@@ -103,7 +152,69 @@ Test the Formatter class using NSubstituteSutBuilder
             // then
             logger.Received().Log("formatting ...");
             
-            Assert.That(result, Is.EqualTo("Goodbye guys!"));                        
+            Assert.That(result, Is.EqualTo("Goodbye guys!"));
         }
+        
+        [Test]
+        public void Should_Format_Using_Default_Config_After_Reset()
+        { 
+            /*
+             * "Hello guys" case
+             */
+            
+            // given
+            var builder = new SutBuilder();
+
+            builder.Configure<IArgumentsProvider>(ap => ap
+                .GetArguments()
+                .Returns(new object[] {"guys"}));
+
+            // sut            
+            var sut = builder.Build();
+
+            // when 
+            var result = sut.FormatMessage();
+
+            // then
+            Assert.That(result, Is.EqualTo("Hello guys!"));
+
+            
+            /*
+             * "Hello world" case
+             */ 
+            
+            // given
+            builder.Reset();
+            
+            // sut
+            sut = builder.Build();
+            
+            // when
+            result = sut.FormatMessage();
+
+            // then
+            Assert.That(result, Is.EqualTo("Hello world!"));
+            
+            /*
+             * "Hello dude" case
+             */
+            
+            // given
+            builder.Reset();
+
+            builder.Configure<IArgumentsProvider>(ap => ap
+                .GetArguments()
+                .Returns(new object[] {"dude"}));
+            
+            // sut
+            sut = builder.Build();
+                        
+            // when
+            result = sut.FormatMessage();
+
+            // then
+            Assert.That(result, Is.EqualTo("Hello dude!"));
+        }
+        
     }
-```
+}```

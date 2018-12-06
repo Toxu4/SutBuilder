@@ -9,18 +9,22 @@ namespace SutBuilder.Tests.Unit
     {
         private class SutBuilder : NSubstituteSutBuilder<Formatter>
         {
-            public SutBuilder(params object[] initialStubs)
-            : base(initialStubs.Length > 0 
-                ? initialStubs 
-                : new object[] { new SomethingMaker(), new ParametrizedSomethingMaker(256) })
+            public SutBuilder()
+            : base(builder =>
             {
-                Configure<IFormatProvider>(fp => fp.GetFormat().Returns("Hello {0}!"));
-                Configure<IArgumentsProvider>(ap => ap.GetArguments().Returns(new object[] {"world"}));
+                builder.Inject(
+                    new SomethingMaker(),
+                    new ParametrizedSomethingMaker(256));
+                
+                builder.Configure<IFormatProvider>(fp => fp.GetFormat().Returns("Hello {0}!"));
+                builder.Configure<IArgumentsProvider>(ap => ap.GetArguments().Returns(new object[] {"world"}));                
+            })
+            {
             }
         }
 
         [Test]
-        public void ShouldFormat()
+        public void Should_Format_Using_Default_Config()
         {
             // given
             var builder = new SutBuilder();
@@ -36,7 +40,7 @@ namespace SutBuilder.Tests.Unit
         }
         
         [Test]
-        public void ShouldFormat2()
+        public void Should_Format_Using_Additional_Injections_And_Configuration()
         {
             // given
             var argProvider = Substitute.For<IArgumentsProvider>();
@@ -45,8 +49,11 @@ namespace SutBuilder.Tests.Unit
             var somethingMaker = new SomethingMaker();
             var parametrizedSomethingMaker = new ParametrizedSomethingMaker(256);
             
-            var builder = new SutBuilder(somethingMaker, parametrizedSomethingMaker)             
-                .Inject(argProvider)
+            var builder = new SutBuilder()
+                .Inject(
+                    somethingMaker, 
+                    parametrizedSomethingMaker, 
+                    argProvider)
                 .Configure<IFormatProvider>(fp => fp.GetFormat().Returns("Goodbye {0}!"));
 
             var logger = builder.Get<IMyLogger>();
@@ -60,7 +67,69 @@ namespace SutBuilder.Tests.Unit
             // then
             logger.Received().Log("formatting ...");
             
-            Assert.That(result, Is.EqualTo("Goodbye guys!"));                        
+            Assert.That(result, Is.EqualTo("Goodbye guys!"));
         }
+        
+        [Test]
+        public void Should_Format_Using_Default_Config_After_Reset()
+        { 
+            /*
+             * "Hello guys" case
+             */
+            
+            // given
+            var builder = new SutBuilder();
+
+            builder.Configure<IArgumentsProvider>(ap => ap
+                .GetArguments()
+                .Returns(new object[] {"guys"}));
+
+            // sut            
+            var sut = builder.Build();
+
+            // when 
+            var result = sut.FormatMessage();
+
+            // then
+            Assert.That(result, Is.EqualTo("Hello guys!"));
+
+            
+            /*
+             * "Hello world" case
+             */ 
+            
+            // given
+            builder.Reset();
+            
+            // sut
+            sut = builder.Build();
+            
+            // when
+            result = sut.FormatMessage();
+
+            // then
+            Assert.That(result, Is.EqualTo("Hello world!"));
+            
+            /*
+             * "Hello dude" case
+             */
+            
+            // given
+            builder.Reset();
+
+            builder.Configure<IArgumentsProvider>(ap => ap
+                .GetArguments()
+                .Returns(new object[] {"dude"}));
+            
+            // sut
+            sut = builder.Build();
+                        
+            // when
+            result = sut.FormatMessage();
+
+            // then
+            Assert.That(result, Is.EqualTo("Hello dude!"));
+        }
+        
     }
 }

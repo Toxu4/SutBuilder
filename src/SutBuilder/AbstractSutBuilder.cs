@@ -2,38 +2,50 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace SutBuilder
 {
     public abstract class AbstractSutBuilder<T>  where T : class
     {
-        private readonly Dictionary<Type, object> _initialStubs;
         private Dictionary<Type, object> _stubs;
+        
+        private readonly Action<AbstractSutBuilder<T>> _defautConfig;
+        
+        private MethodInfo _createStubMethodInfo;
+        private MethodInfo CreateStubMethodInfo => 
+            _createStubMethodInfo ?? 
+            (
+                _createStubMethodInfo = GetType()
+                   .GetMethods(BindingFlags.Instance | BindingFlags.NonPublic)
+                       .First(mi => mi.Name == nameof(CreateStub)));
         
         protected abstract TStub CreateStub<TStub>() where TStub: class;
 
-        protected AbstractSutBuilder(params object[] initialStubs)
+        protected AbstractSutBuilder(Action<AbstractSutBuilder<T>> defaultConfig)
         {
-            _initialStubs = 
-                initialStubs?
-                    .GroupBy(s => s.GetType())
-                    .ToDictionary(g => g.Key, g => g.First())
-                ?? new Dictionary<Type, object>();
-                
-            _stubs = CreateStubs();
-        }
-
-        public AbstractSutBuilder<T> Reset() 
-        {
-            _stubs = CreateStubs();
+            _defautConfig = defaultConfig;
             
-            return this;
+            CreateStubs();
         }
-        
-        public AbstractSutBuilder<T> Inject<TStub>(TStub dependency) where TStub : class
+                        
+        public AbstractSutBuilder<T> Inject(params object[] dependencies)
         {
-            _stubs[typeof(TStub)] = dependency;
+            if (dependencies?.Length > 0)
+            {
+                foreach (var dependency in dependencies)
+                {
+                    var dependencyType = dependency.GetType();
+
+                    var stubKey = dependencyType
+                        .GetInterfaces()
+                        .Union(new[] {dependencyType})
+                        .First(i => _stubs.ContainsKey(i)); 
+                    
+                    _stubs[stubKey] = dependency;
+                }                
+            }
             
             return this;
         }
@@ -57,6 +69,11 @@ namespace SutBuilder
             return serviceProvider.GetService<T>();
         }
 
+        public void Reset() 
+        {
+            CreateStubs();
+        }               
+
         private IServiceProvider CreateServiceProvider()
         {
             var services = new ServiceCollection();
@@ -71,26 +88,36 @@ namespace SutBuilder
             return services.BuildServiceProvider();
         }
 
-        private Dictionary<Type, object> CreateStubs()
+        private void CreateStubs()
         {
-            var createStubMethodInfo = GetType()
-                .GetMethods(BindingFlags.Instance | BindingFlags.NonPublic)
-                .First(mi => mi.Name == nameof(CreateStub));
-            
-            return typeof(T)
+            _stubs = typeof(T)
                 .GetConstructors().SelectMany(c => c.GetParameters())
                 .GroupBy(p => p.ParameterType)
-                .Where(g => !_initialStubs.ContainsKey(g.Key))
                 .Select(g => 
                     new KeyValuePair<Type, object>(
                         g.Key, 
-                        createStubMethodInfo
-                            .MakeGenericMethod(g.Key)
-                            .Invoke(this, new object[] {})))
-                .Union(_initialStubs)
+                        CreateStubSafety(g.Key)))
                 .ToDictionary(
                     kv => kv.Key,
                     kv => kv.Value);
+            
+            _defautConfig?.Invoke(this);
+            
+            object CreateStubSafety(Type dependencyType)
+            {
+                try
+                {
+                    return CreateStubMethodInfo
+                        .MakeGenericMethod(dependencyType)
+                        .Invoke(this, new object[] {});
+                }
+                catch
+                {
+                    return dependencyType.IsValueType 
+                        ? Activator.CreateInstance(dependencyType) 
+                        : null;
+                }
+            }           
         }        
     }
 }
