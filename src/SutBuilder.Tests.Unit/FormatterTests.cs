@@ -5,7 +5,7 @@ using SutBuilder.NSubstitute;
 namespace SutBuilder.Tests.Unit
 {
     [TestFixture]
-    public partial class FormatterTests
+    public class FormatterTests
     {
         private class SutBuilder : NSubstituteSutBuilder<Formatter>
         {
